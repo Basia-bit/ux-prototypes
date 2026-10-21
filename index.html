@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orange ES — Prototypes</title>
+<style>
+  :root { --orange:#ff7900; --ink:#1a1a1a; --muted:#6b6b6b; --line:#e5e5e5; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:"Helvetica Neue",Arial,sans-serif; background:#f5f5f7; color:var(--ink);
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:40px 20px;
+  }
+  .wrap { width:100%; max-width:560px; }
+  .kicker { font-size:12px; letter-spacing:1px; color:var(--orange); font-weight:700; text-transform:uppercase; }
+  h1 { font-size:28px; font-weight:800; margin:8px 0 6px; letter-spacing:-.4px; }
+  .sub { font-size:14px; color:var(--muted); line-height:1.55; margin-bottom:28px; }
+  .card {
+    display:flex; align-items:center; gap:16px; background:#fff; border:1px solid var(--line);
+    border-radius:12px; padding:18px 20px; text-decoration:none; color:inherit; margin-bottom:14px;
+    transition:border-color .15s ease, transform .15s ease;
+  }
+  .card:hover { border-color:var(--orange); transform:translateY(-1px); }
+  .dot { width:40px; height:40px; border-radius:9px; background:var(--orange); flex-shrink:0;
+         display:flex; align-items:center; justify-content:center; }
+  .dot svg { display:block; }
+  .card .t { flex:1; }
+  .card .t .name { font-size:16px; font-weight:700; }
+  .card .t .desc { font-size:13px; color:var(--muted); margin-top:3px; line-height:1.45; }
+  .card .arrow { color:var(--muted); font-size:20px; }
+  .card:hover .arrow { color:var(--orange); }
+  .note { font-size:12px; color:#999; margin-top:22px; line-height:1.55; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="kicker">Orange ES · Home insurance</div>
+    <h1>Prototypes</h1>
+    <p class="sub">Clickable lo-fi prototypes for the account / payment step. Dark theme, interactive sections. Open on desktop or mobile.</p>
+
+    <a class="card" href="account_step.html">
+      <span class="dot"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="#fff" stroke-width="2"/><path d="M3 10h18" stroke="#fff" stroke-width="2"/></svg></span>
+      <span class="t">
+        <span class="name">Account / payment step</span>
+        <span class="desc">The redesigned step: price with breakdown, IBAN, explained questions, documents, validated confirm.</span>
+      </span>
+      <span class="arrow">&#8250;</span>
+    </a>
+
+    <a class="card" href="loading_screen.html">
+      <span class="dot"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="2"/><path d="M12 7v5l3 2" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></span>
+      <span class="t">
+        <span class="name">Loading screen</span>
+        <span class="desc">The waiting moment between quote and plan — a calmer, informative loader.</span>
+      </span>
+      <span class="arrow">&#8250;</span>
+    </a>
+
+    <p class="note">Lo-fi prototypes to illustrate the proposed UX, not final designs. Copy and prices are placeholders.</p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orange ES — Account / payment step (prototype)</title>
+<style>
+  :root {
+    --bg:        #1a1a1a;   /* screen / section background (from Ref.svg) */
+    --border:    #474747;   /* section borders */
+    --orange:    #ff7900;   /* CTA, active toggle, accents */
+    --ink:       #ffffff;   /* main text */
+    --muted:     #b8b8b8;   /* descriptions, micro-copy */
+    --sep:       #666666;   /* divider lines */
+    --discount:  #3d240a;   /* calm discount bar (dark amber) */
+    --field:     #2a2a2a;   /* input background */
+    --radius:    9px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    min-height: 100%;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    background: #e9e9ee;
+    color: var(--ink);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 30px 16px;
+  }
+
+  /* Mobile frame */
+  .phone {
+    width: 390px;
+    background: var(--bg);
+    border-radius: 16px;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.3);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Top bar with co-branding */
+  .topbar {
+    height: 46px;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--sep);
+  }
+  .brand { display: flex; align-items: center; gap: 9px; }
+  .brand .logo-o {
+    width: 22px; height: 22px; border-radius: 4px;
+    background: var(--orange);
+  }
+  .brand .divider { width: 1px; height: 18px; background: #555; }
+  .brand .zurich { font-size: 11px; letter-spacing: .5px; color: #ddd; }
+  .topbar .phone-ico { display: inline-flex; align-items: center; }
+
+  /* Product title bar (orange, collapsible) — matches the live process */
+  .titlebar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 18px 4px;
+  }
+  .titlebar .product { font-size: 19px; font-weight: 800; color: var(--orange); letter-spacing: -.2px; }
+  .titlebar .caret { color: var(--orange); font-size: 13px; }
+
+  /* Step label + progress line — "4 de 4 — Nº de cuenta" */
+  .stephead { padding: 6px 18px 0; }
+  .stephead .steplabel { font-size: 13px; color: var(--ink); font-weight: 400; }
+  .progress-line { height: 3px; background: #3a3a3a; margin: 11px 0 0; position: relative; overflow: hidden; }
+  .progress-line .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--orange); }
+
+  /* Step heading (the question) */
+  .qhead { padding: 16px 18px 2px; }
+  .qhead .steptitle { font-size: 20px; font-weight: 800; line-height: 1.25; letter-spacing: -.3px; }
+
+  .content { padding: 6px 18px 20px; }
+
+  /* Generic card / section */
+  .card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-top: 14px;
+    background: var(--bg);
+    position: relative;   /* anchor for info-tip bubbles */
+  }
+
+  /* 1. Price summary */
+  .price-card .label { font-size: 13px; color: var(--muted); }
+  .price-card .amount { font-size: 30px; font-weight: 800; color: var(--orange); margin-top: 4px; letter-spacing: -.5px; }
+  .price-card .period { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+  .price-card .start { font-size: 13px; color: var(--ink); margin-top: 11px; padding-top: 11px; border-top: 1px solid var(--sep); }
+  .price-card .start b { font-weight: 700; }
+
+  /* Price breakdown rows — with type icons, same visual language as the quote screen */
+  .breakdown { display: flex; flex-direction: column; gap: 11px; }
+  .breakdown .row { display: flex; align-items: center; font-size: 13px; color: var(--muted); }
+  .breakdown .row .r-ico {
+    width: 26px; height: 26px; border-radius: 6px; flex-shrink: 0; margin-right: 10px;
+    background: var(--field); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center; color: var(--orange);
+  }
+  .breakdown .row .r-name { flex: 1; color: var(--ink); font-weight: 400; }
+  .breakdown .row .amt { color: var(--ink); }
+  .breakdown .total { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 700;
+    color: var(--ink); margin-top: 4px; padding-top: 11px; border-top: 1px solid var(--sep); }
+  .breakdown .total .amt { color: var(--orange); }
+
+  /* Collapsible documents card */
+  .disc-card > summary.disc-card-sum {
+    list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    font-size: 14px; font-weight: 700; color: var(--ink);
+  }
+  .disc-card > summary.disc-card-sum::-webkit-details-marker { display: none; }
+  .disc-card > summary.disc-card-sum .chev { color: var(--orange); font-size: 18px; transition: transform .25s ease; }
+  .disc-card[open] > summary.disc-card-sum .chev { transform: rotate(90deg); }
+
+  /* Documents list */
+  .docs { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+  .doc {
+    display: flex; align-items: center; gap: 11px; padding: 11px 2px;
+    border-bottom: 1px solid var(--sep); color: var(--ink); font-size: 13.5px;
+    text-decoration: none;
+  }
+  .doc:last-child { border-bottom: none; }
+  .doc:hover .doc-name { color: var(--orange); }
+  .doc .doc-ico {
+    width: 30px; height: 30px; border-radius: 6px; flex-shrink: 0;
+    background: var(--field); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center; color: var(--orange); font-size: 14px;
+  }
+  .doc .doc-name { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .doc .doc-sub { font-size: 10.5px; color: var(--muted); letter-spacing: .5px; }
+  .doc .doc-dl { color: var(--muted); margin-left: 10px; flex-shrink: 0; display: inline-flex; align-items: center; }
+  .doc:hover .doc-dl { color: var(--orange); }
+  .doc .doc-ico svg { display: block; }
+
+  /* Disclosure (expandable) */
+  .disc { margin-top: 12px; border-top: 1px solid var(--sep); padding-top: 11px; }
+  .disc > summary {
+    list-style: none; cursor: pointer;
+    font-size: 13.5px; color: var(--orange); font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .disc > summary::-webkit-details-marker { display: none; }
+  .disc > summary .chev { transition: transform .25s ease; display: inline-block; }
+  .disc[open] > summary .chev { transform: rotate(90deg); }
+  .disc .disc-body { font-size: 13px; color: var(--muted); line-height: 1.55; margin-top: 10px; }
+  .disc .disc-body ul { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .disc .disc-body li { display: flex; align-items: center; gap: 9px; color: var(--ink); font-size: 13px; }
+  .disc .disc-body li .ok {
+    width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+    border: 1.5px solid var(--orange); color: var(--orange);
+    display: flex; align-items: center; justify-content: center; font-size: 10px;
+  }
+
+  /* Section title */
+  .sec-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 7px; }
+  .sec-sub { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin-bottom: 13px; }
+
+  /* Field */
+  .field-label { font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+  .field-label .req { color: var(--orange); }
+  input[type="text"] {
+    width: 100%; background: var(--field); border: 1px solid var(--border);
+    border-radius: 7px; padding: 12px 13px; color: var(--ink);
+    font-size: 14px; font-family: inherit; letter-spacing: .4px;
+  }
+  input[type="text"]:focus { outline: none; border-color: var(--orange); }
+  input[type="text"]::placeholder { color: #6b6b6b; letter-spacing: .4px; }
+  input[type="text"].error { border-color: #ff7900; background: #241607; }
+  .field-error { font-size: 11.5px; color: var(--orange); margin-top: 6px; display: none; }
+  .field-error.show { display: block; }
+  .reassure { font-size: 12px; color: var(--muted); margin-top: 8px; display: flex; align-items: center; gap: 7px; }
+  .reassure .lock { display: inline-flex; align-items: center; flex-shrink: 0; }
+
+  /* Info tip — matches the quote screen: thin "i" in a circle, at the end of the text */
+  .tip { display: inline-flex; vertical-align: middle; margin-left: 6px; }
+  .tip .i { display: inline-flex; color: var(--muted); cursor: help; }
+  .tip .i:hover { color: var(--orange); }
+  .tip .i svg { display: block; }
+  /* Bubble spans the card width (anchored to .card), so it never leaves the screen */
+  .tip .bubble {
+    position: absolute; bottom: calc(100% + 10px); left: 14px; right: 14px;
+    background: #000; border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; font-size: 12px; line-height: 1.5;
+    color: var(--ink); font-weight: 400; font-style: normal;
+    opacity: 0; visibility: hidden; transition: opacity .2s ease; z-index: 5;
+    box-shadow: 0 8px 24px rgba(0,0,0,.5);
+  }
+  .tip:hover .bubble { opacity: 1; visibility: visible; }
+  .tip .bubble .verify { display: block; margin-top: 6px; color: var(--muted); font-size: 11px; }
+
+  /* Choice buttons (mortgage) */
+  .choices { display: flex; gap: 10px; }
+  .choice {
+    flex: 1; background: var(--field); border: 1.5px solid var(--border);
+    border-radius: 8px; padding: 13px; color: var(--ink); font-size: 13.5px; font-weight: 600;
+    cursor: pointer; text-align: center; transition: all .2s ease; font-family: inherit;
+  }
+  .choice:hover { border-color: #777; }
+  .choice.active { border-color: var(--orange); color: var(--orange); background: #241607; }
+
+  /* Checkbox declaration */
+  .declare { display: flex; gap: 11px; align-items: flex-start; }
+  .declare input { margin-top: 2px; width: 17px; height: 17px; accent-color: var(--orange); flex-shrink: 0; }
+  .declare .txt { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+
+  /* Consent + fine print */
+  .fineprint { font-size: 11.5px; color: var(--muted); line-height: 1.6; margin-top: 16px; }
+  .fineprint a { color: var(--ink); text-decoration: underline; }
+  .discount-bar {
+    background: var(--discount); border-radius: 7px; padding: 10px 13px;
+    font-size: 12.5px; color: #f3b27a; display: flex; align-items: center; gap: 8px;
+  }
+  .discount-bar.in-price { margin-top: 12px; }
+  .discount-bar .coin { display: inline-flex; align-items: center; flex-shrink: 0; }
+
+  /* Confirm block: price reminder + consent + CTA */
+  .confirm-block { margin-top: 18px; }
+  .total-reminder {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-bottom: 14px; border-bottom: 1px solid var(--sep); margin-bottom: 14px;
+  }
+  .total-reminder .t-label { font-size: 13px; color: var(--muted); }
+  .total-reminder .t-amt { font-size: 20px; font-weight: 800; color: var(--orange); }
+  .total-reminder .t-note { display: block; font-size: 11px; color: var(--muted); font-weight: 400; text-align: right; margin-top: 2px; }
+
+  .consent { display: flex; gap: 11px; align-items: flex-start; border: 1px solid transparent; border-radius: 8px; padding: 4px; transition: all .2s ease; }
+  .consent.flash { border-color: var(--orange); background: #241607; }
+  .consent input { margin-top: 2px; width: 18px; height: 18px; accent-color: var(--orange); flex-shrink: 0; cursor: pointer; }
+  .consent .txt { font-size: 12px; color: var(--muted); line-height: 1.55; }
+  .consent .txt a { color: var(--ink); text-decoration: underline; }
+  .consent-hint { font-size: 11.5px; color: var(--orange); margin: 8px 0 0 33px; display: none; }
+  .consent-hint.show { display: block; }
+
+  /* CTA */
+  .cta {
+    width: 100%; background: var(--orange); color: #000; border: none;
+    border-radius: 8px; padding: 15px; font-size: 15px; font-weight: 800;
+    cursor: pointer; margin-top: 14px; font-family: inherit; letter-spacing: .2px;
+    transition: all .2s ease;
+  }
+  .cta:hover { filter: brightness(1.07); }
+  .cta:disabled, .cta.disabled {
+    background: #3a3a3a; color: #777; cursor: not-allowed; filter: none;
+  }
+
+  .legal { font-size: 10.5px; color: #7a7a7a; line-height: 1.55; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--sep); }
+
+  /* Prototype note */
+  .proto-note {
+    max-width: 390px; margin: 0 auto 14px; font-size: 12px; color: #555;
+    text-align: center; line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+  <div>
+    <p class="proto-note">Prototype · Account / payment step (4 of 4). Dark theme per the quote screen.
+      Expandable sections and info tips are interactive.</p>
+
+    <div class="phone">
+      <!-- Top bar -->
+      <div class="topbar">
+        <div class="brand">
+          <span class="logo-o"></span>
+          <span class="divider"></span>
+          <span class="zurich">ZURICH</span>
+        </div>
+        <span class="phone-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6.6 10.8a15.5 15.5 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.24c1.1.37 2.3.57 3.5.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.2.2 2.4.57 3.5a1 1 0 0 1-.24 1l-2.2 2.3Z" fill="#fff"/></svg></span>
+      </div>
+
+      <!-- Product title bar (collapsible, as in the live process) -->
+      <div class="titlebar">
+        <span class="product">Home insurance</span>
+        <span class="caret">&#9660;</span>
+      </div>
+
+      <!-- Step label + progress line: "4 of 4 — Account number" -->
+      <div class="stephead">
+        <div class="steplabel">4 of 4 &mdash; Account number</div>
+        <div class="progress-line"><span class="fill" style="width:100%"></span></div>
+      </div>
+
+      <!-- Step question -->
+      <div class="qhead">
+        <div class="steptitle">Which account should we use for the direct debit?</div>
+      </div>
+
+      <div class="content">
+
+        <!-- 1. Price summary (static, transparent — NOT sticky) -->
+        <div class="card price-card">
+          <div class="label">This is what you'll pay</div>
+          <div class="amount">21.27 &euro;/mo</div>
+          <div class="period">first year &middot; was 26.59 &euro;</div>
+          <div class="discount-bar in-price"><span class="coin"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#ff7900" stroke-width="2"/><path d="M12 7v10M9.5 9.2c0-1.1 1.1-1.7 2.5-1.7s2.5.7 2.5 1.8c0 2.6-5 1.4-5 4 0 1.1 1.1 1.8 2.5 1.8s2.5-.6 2.5-1.7" stroke="#ff7900" stroke-width="1.6" stroke-linecap="round"/></svg></span> 60 &euro; off on your Orange bill</div>
+          <div class="start">Cover starts <b>1 November 2026</b></div>
+
+          <!-- Price breakdown: base plan + chosen extras = total -->
+          <details class="disc">
+            <summary><span class="chev">&#8250;</span> See price breakdown</summary>
+            <div class="disc-body">
+              <div class="breakdown">
+                <div class="row">
+                  <span class="r-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M3 11l9-7 9 7" stroke="#ff7900" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9" stroke="#ff7900" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                  <span class="r-name">Base plan</span> <span class="amt">19.17 &euro;/mo</span>
+                </div>
+                <div class="row">
+                  <span class="r-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="#ff7900" stroke-width="1.8"/><circle cx="8" cy="9" r="1.4" fill="#ff7900"/><circle cx="16" cy="9" r="1.4" fill="#ff7900"/></svg></span>
+                  <span class="r-name">Ceramic / induction hob cover</span> <span class="amt">+0.90 &euro;/mo</span>
+                </div>
+                <div class="row">
+                  <span class="r-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 3c3 3 4.5 6 4.5 9a4.5 4.5 0 0 1-9 0c0-3 1.5-6 4.5-9Z" stroke="#ff7900" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+                  <span class="r-name">Travel assistance</span> <span class="amt">+1.20 &euro;/mo</span>
+                </div>
+                <div class="total"><span>Total</span> <span class="amt">21.27 &euro;/mo</span></div>
+              </div>
+            </div>
+          </details>
+
+          <!-- Full cover list — all covers, not a "+9 more" dead end -->
+          <details class="disc">
+            <summary><span class="chev">&#8250;</span> See all covers included</summary>
+            <div class="disc-body">
+              <ul>
+                <li><span class="ok">&#10003;</span> Fire &amp; explosion</li>
+                <li><span class="ok">&#10003;</span> Water damage &mdash; leaks, burst pipes</li>
+                <li><span class="ok">&#10003;</span> Theft &amp; urgent locksmith</li>
+                <li><span class="ok">&#10003;</span> Civil liability</li>
+                <li><span class="ok">&#10003;</span> Home repairs &amp; assistance</li>
+                <li><span class="ok">&#10003;</span> Glass &amp; window breakage</li>
+                <li><span class="ok">&#10003;</span> Electrical damage</li>
+                <li><span class="ok">&#10003;</span> Home contents</li>
+                <li><span class="ok">&#10003;</span> Legal protection</li>
+                <li><span class="ok">&#10003;</span> 24/7 emergency assistance</li>
+                <li><span class="ok">&#10003;</span> Food spoilage (fridge/freezer)</li>
+                <li><span class="ok">&#10003;</span> Damage from atmospheric events</li>
+                <li><span class="ok">&#10003;</span> Ceramic / induction hob (extra)</li>
+                <li><span class="ok">&#10003;</span> Travel assistance (extra)</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+
+        <!-- 2. IBAN -->
+        <div class="card">
+          <div class="sec-title">Payment account</div>
+          <div class="field-label">Enter your IBAN for the direct debit <span class="req">*</span></div>
+          <input type="text" id="iban" placeholder="ES00 0000 0000 0000 0000 0000" spellcheck="false">
+          <div class="field-error" id="ibanError">Please enter your IBAN.</div>
+          <div class="reassure"><span class="lock"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="4" y="10" width="16" height="11" rx="2" stroke="#ff7900" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="#ff7900" stroke-width="2"/></svg></span> 100% digital payment. First charge on 1 November 2026.</div>
+
+          <details class="disc">
+            <summary><span class="chev">&#8250;</span> How you'll be charged</summary>
+            <div class="disc-body">
+              Your premium is billed <b style="color:#fff;">monthly</b> by direct debit &mdash; 21.27 &euro; per month
+              for the first year. The first charge is taken on your cover start date; after that, on the same day each month.
+              You can cancel or change your account anytime from your policy area.
+            </div>
+          </details>
+        </div>
+
+        <!-- 3. Mortgage -->
+        <div class="card">
+          <div class="sec-title">Do you have a mortgage on this property?</div>
+          <div class="sec-sub">We ask so we can set the policy up correctly.<span class="tip"><span class="i"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 11v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="7.8" r="1.1" fill="currentColor"/></svg></span>
+              <span class="bubble">This helps us tailor your cover. Answering &ldquo;yes&rdquo; doesn't block your purchase or change your price.
+                <span class="verify">To verify with the company.</span>
+              </span>
+            </span>
+          </div>
+          <div class="choices">
+            <button class="choice active" onclick="pick(this)">No, I don't</button>
+            <button class="choice" onclick="pick(this)">Yes, I do</button>
+          </div>
+        </div>
+
+        <!-- 4. Construction declaration -->
+        <!-- RECOMMENDATION (variant A): ideally move this to the property step (screen 3),
+             as it looks like an eligibility condition. Shown here (variant B) with an explanation. -->
+        <div class="card">
+          <div class="declare">
+            <input type="checkbox" id="construct">
+            <label for="construct" class="txt">
+              I declare that the home is not built with more than 25% wood, is not prefabricated and is not located in an uninhabited area.<span class="tip"><span class="i"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 11v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="7.8" r="1.1" fill="currentColor"/></svg></span>
+                <span class="bubble">This is a cover condition set by the insurer. If your home doesn't meet it, we'll help you find the right option &mdash; contact us.
+                  <span class="verify">To verify: hard eligibility rule or policy statement?</span>
+                </span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 5. Documents — discreet, collapsible. General product docs (not the user's policy yet). -->
+        <details class="card disc-card">
+          <summary class="disc-card-sum">
+            <span>Product documents</span>
+            <span class="chev">&#8250;</span>
+          </summary>
+          <div class="sec-sub" style="margin-top:12px;">The general terms of this insurance, to download if you wish. You'll receive your own policy documents once the contract is confirmed.</div>
+          <div class="docs">
+            <a href="#" class="doc">
+              <span class="doc-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" stroke="#ff7900" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="#ff7900" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+              <span class="doc-name">General terms &amp; conditions<span class="doc-sub">PDF</span></span>
+              <span class="doc-dl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0 4-4m-4 4-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 20h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+            </a>
+            <a href="#" class="doc">
+              <span class="doc-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" stroke="#ff7900" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="#ff7900" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+              <span class="doc-name">Insurance Product Information (IPID)<span class="doc-sub">PDF</span></span>
+              <span class="doc-dl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0 4-4m-4 4-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 20h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+            </a>
+            <a href="#" class="doc">
+              <span class="doc-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" stroke="#ff7900" stroke-width="1.8" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="#ff7900" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+              <span class="doc-name">Mediator information note<span class="doc-sub">PDF</span></span>
+              <span class="doc-dl"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0 4-4m-4 4-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 20h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+            </a>
+          </div>
+        </details>
+
+        <!-- 6. Fine print -->
+        <p class="fineprint">
+          Your first bill may vary slightly, as it includes the pro-rata amount and mandatory charges. Offer valid for 60 days.
+        </p>
+
+        <!-- 7. Confirm block: price reminder -> consent -> CTA (validated) -->
+        <div class="confirm-block">
+          <div class="total-reminder">
+            <span class="t-label">Total</span>
+            <span>
+              <span class="t-amt">21.27 &euro;/mo</span>
+              <span class="t-note">first year &middot; 60 &euro; off applied</span>
+            </span>
+          </div>
+
+          <label class="consent" id="consentRow">
+            <input type="checkbox" id="consent">
+            <span class="txt">I confirm I have read and accept the
+              <a href="#">purchase terms</a> and the <a href="#">privacy policy</a>. This is a 100% digital policy.</span>
+          </label>
+          <div class="consent-hint" id="consentHint">Please accept the terms to continue.</div>
+
+          <button class="cta disabled" id="confirmBtn" aria-disabled="true">Confirm</button>
+        </div>
+
+        <p class="legal">
+          Home insurance from Zurich Insurance Europe AG, Spanish branch, distributed by Orange Mediaci&oacute;n de Seguros, S.L.U.,
+          a tied insurance agency (Orange Seguros) registered with the DGSFP under no. AJ0232. Civil liability cover arranged.
+        </p>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Mortgage choice toggle
+  function pick(btn) {
+    btn.parentElement.querySelectorAll('.choice').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  // Confirm validation: button stays disabled until consent is ticked
+  const consent    = document.getElementById('consent');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const consentRow  = document.getElementById('consentRow');
+  const consentHint = document.getElementById('consentHint');
+
+  const iban      = document.getElementById('iban');
+  const ibanError = document.getElementById('ibanError');
+
+  function consentOk() { return consent.checked; }
+  function ibanOk()    { return iban.value.trim().length >= 4; } // light check only (prototype)
+
+  function isDisabled() { return confirmBtn.classList.contains('disabled'); }
+
+  function syncConfirm() {
+    const ok = consentOk();
+    confirmBtn.classList.toggle('disabled', !ok);
+    confirmBtn.setAttribute('aria-disabled', String(!ok));
+    if (ok) { consentRow.classList.remove('flash'); consentHint.classList.remove('show'); }
+  }
+  consent.addEventListener('change', syncConfirm);
+
+  // Clear the IBAN error as soon as the user types
+  iban.addEventListener('input', () => {
+    if (ibanOk()) { iban.classList.remove('error'); ibanError.classList.remove('show'); }
+  });
+
+  // Button is never natively disabled, so clicks always fire.
+  confirmBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    // Highlight whatever is missing
+    let firstMissing = null;
+
+    if (!ibanOk()) {
+      iban.classList.add('error');
+      ibanError.classList.add('show');
+      firstMissing = firstMissing || iban;
+    }
+    if (!consentOk()) {
+      consentRow.classList.add('flash');
+      consentHint.classList.add('show');
+      firstMissing = firstMissing || consentRow;
+    }
+
+    if (firstMissing) {
+      firstMissing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    // valid
+    alert('Confirmed (prototype)');
+  });
+
+  syncConfirm();
+</script>
+</body>
+</html>
